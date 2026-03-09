@@ -3,84 +3,217 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20font-size%3D%2748%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27central%27%3E%F0%9F%95%B7%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <title>tokens‑to‑txt</title>
   <meta name="description" content="Decode OpenAI token IDs to text. Minimal, fast, and supports multiple encodings." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Coming+Soon&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <style>
     :root {
-      --accent: #635994;
-      --bg: #ffffff;
-      --fg: #141217;
-      --muted: #6e6a86;
-      --panel: #ffffff;
-      --border: #e7e3ff;
-      --shadow: 0 1px 0 rgba(20,18,23,0.03), 0 8px 24px rgba(99,89,148,0.06);
-      --maxw: 980px;
+      color-scheme: light dark;
+      --bg: #f4f4f1;
+      --paper: #ffffff;
+      --panel: #fafafa;
+      --fg: #222222;
+      --muted: #666666;
+      --label: #333333;
+      --subtle: #444444;
+      --border: #cfcfcf;
+      --border-dark: #999999;
+      --divider: #dddddd;
+      --header: #eeeeee;
+      --hover-bg: #f3f3f3;
+      --placeholder: #7a7a7a;
+      --link: LinkText;
+      --link-visited: VisitedText;
+      --active-bg: #eef3ff;
+      --maxw: 1040px;
     }
+
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0f0e13;
-        --fg: #eceaf7;
-        --muted: #b5b1d6;
-        --panel: #151320;
-        --border: #28233c;
-        --shadow: 0 1px 0 rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.35);
+        --bg: #111111;
+        --paper: #1a1a1a;
+        --panel: #161616;
+        --fg: #e5e5e5;
+        --muted: #b5b5b5;
+        --label: #d5d5d5;
+        --subtle: #c6c6c6;
+        --border: #3e3e3e;
+        --border-dark: #666666;
+        --divider: #353535;
+        --header: #242424;
+        --hover-bg: #202020;
+        --placeholder: #9a9a9a;
+        --active-bg: #1d2c48;
       }
     }
+
     * { box-sizing: border-box; }
     html, body { background: var(--bg); color: var(--fg); }
+
     body {
-      font-family: "Coming Soon", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      font-size: 16px; line-height: 1.5; margin: 24px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
+
     button, input, select, textarea { font: inherit; }
-    main { max-width: var(--maxw); margin: 0; }
-    h1 { font-size: 28px; margin: 0; letter-spacing: -0.01em; }
-    a { color: inherit; text-decoration: none; }
-    a.gh { display:flex; align-items:center; gap:8px; }
-    a.gh:hover { text-decoration: underline; }
+    main {
+      max-width: var(--maxw);
+      margin: 18px auto;
+      background: var(--paper);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      font-weight: 400;
+      line-height: 1.1;
+      color: var(--link);
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: underline;
+    }
+
+    a:visited { color: var(--link-visited); }
+
+    a.gh {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
     a.gh span { text-transform: lowercase; }
 
-    .topbar { display:flex; justify-content: space-between; align-items:center; margin-bottom:16px; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 14px;
+      background: var(--header);
+      border-bottom: 1px solid var(--border);
+    }
 
-    .grid { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 24px; align-items: start; }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 16px;
+      align-items: start;
+      padding: 14px;
+    }
 
-    label { font-weight: 700; display:block; margin-bottom: 6px; }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+      color: var(--label);
+    }
+
+    .output-block { margin-top: 10px; }
+
     textarea {
       width: 100%;
-      min-height: 160px;
-      border: 2px solid var(--fg);
-      border-radius: 10px;
-      padding: 12px 14px;
-      background: var(--panel);
+      min-height: 220px;
+      border: 1px solid var(--border-dark);
+      padding: 10px;
+      background: var(--paper);
       color: var(--fg);
       resize: none;
       overflow-y: hidden;
+      font-family: "Courier New", Courier, monospace;
+      line-height: 1.45;
     }
 
-    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; box-shadow: var(--shadow); }
-    .enc-list { display: grid; gap: 10px; }
+    textarea::placeholder { color: var(--placeholder); }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+
+    .muted {
+      margin: 0;
+      padding: 8px 10px;
+      background: var(--header);
+      border-bottom: 1px solid var(--border);
+      color: var(--subtle);
+      font-weight: 700;
+    }
+
+    .enc-list { display: block; }
+
     .enc {
-      display:flex; flex-direction:column; align-items:flex-start; gap:3px;
-      border:1px solid var(--border); border-radius:12px;
-      background: color-mix(in oklab, var(--panel) 90%, var(--accent));
-      padding: 10px 12px; cursor: pointer; transition: transform .02s ease;
+      display: block;
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid var(--divider);
+      background: transparent;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
       color: var(--fg);
     }
-    .enc * { color: inherit; }
+
+    .enc:hover,
+    .enc:focus-visible {
+      background: var(--hover-bg);
+      outline: none;
+    }
+
+    .enc.active { background: var(--active-bg); }
+
+    .enc strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--link);
+      text-decoration: underline;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
     .enc small { color: var(--muted); }
-    .enc:active { transform: translateY(1px); }
-    .enc.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .enc.active small { color: #f3ecff; opacity: .9; }
 
-    pre { border:1px dashed var(--border); border-radius: 10px; padding:12px; background: var(--panel); color: var(--fg); white-space: pre-wrap; word-wrap: break-word; margin: 6px 0 0; }
+    pre {
+      min-height: 180px;
+      margin: 6px 0 0;
+      padding: 10px;
+      border: 1px solid var(--border-dark);
+      background: var(--paper);
+      color: var(--fg);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: "Courier New", Courier, monospace;
+      line-height: 1.45;
+    }
 
-    footer { margin-top: 14px; color: var(--muted); font-size: 14px; }
+    footer {
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid var(--divider);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .emoji { font-family: system-ui, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+    @media (max-width: 900px) {
+      main {
+        margin: 0;
+        border-left: 0;
+        border-right: 0;
+      }
+
+      .grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -97,7 +230,7 @@
       <section>
         <label for="ids">token ids</label>
         <textarea id="ids" placeholder="format- [13203, 614]  or  13203,614  or  13203 614"></textarea>
-        <div style="margin-top:10px">
+        <div class="output-block">
           <label>txt</label>
           <pre id="out">—</pre>
         </div>
@@ -105,7 +238,7 @@
       </section>
 
       <aside class="panel">
-        <div class="muted" style="margin-bottom:8px">encoding</div>
+        <div class="muted">encoding</div>
         <div class="enc-list" id="enc-buttons"></div>
       </aside>
     </div>
